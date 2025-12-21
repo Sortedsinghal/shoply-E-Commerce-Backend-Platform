@@ -1,8 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
+
+# ✅ Enable CORS globally (simplest + safest for dev)
 CORS(app)
 
 def init_db():
@@ -10,7 +12,6 @@ def init_db():
     c = conn.cursor()
     c.execute('DROP TABLE IF EXISTS products')
     c.execute('CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT, category TEXT)')
-
     product_data = [
         ("iPhone 14 Pro", "electronics"),
         ("Samsung Galaxy S22", "electronics"),
@@ -20,7 +21,6 @@ def init_db():
         ("Atomic Habits", "books"),
         ("The Alchemist", "books"),
         ("Rich Dad Poor Dad", "books"),
-        ("The Subtle Art of Not Giving a F*ck", "books"),
         ("Zero to One", "books"),
         ("Nike Running Shoes", "apparel"),
         ("Adidas T-shirt", "apparel"),
@@ -45,25 +45,30 @@ def init_db():
 
 init_db()
 
-@app.route('/api/chat', methods=['POST'])
+@app.route("/api/chat", methods=["POST", "OPTIONS"])
 def chat():
-    user_input = request.json['message'].strip().lower()
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response, 200
 
-    conn = sqlite3.connect('inventory.db')
+    user_input = request.json["message"].strip().lower()
+
+    conn = sqlite3.connect("inventory.db")
     c = conn.cursor()
 
-    if user_input in ['show all', 'show products', 'list all']:
+    if user_input in ["show all", "show products", "list all"]:
         c.execute("SELECT name FROM products")
         matches = c.fetchall()
     else:
-        # Try exact match first
         c.execute("""
             SELECT name FROM products
             WHERE LOWER(name) = ? OR LOWER(category) = ?
         """, (user_input, user_input))
         matches = c.fetchall()
 
-        # If no exact matches, fall back to partial match
         if not matches:
             c.execute("""
                 SELECT name FROM products
@@ -73,12 +78,14 @@ def chat():
 
     conn.close()
 
-    if matches:
-        reply = "Here are some matching products:\n" + "\n".join([row[0] for row in matches])
-    else:
-        reply = "Sorry, I couldn’t find any matching products."
+    reply = (
+        "Here are some matching products:\n" + "\n".join([row[0] for row in matches])
+        if matches else
+        "Sorry, I couldn’t find any matching products."
+    )
 
-    return jsonify({'reply': reply})
+    return jsonify({"reply": reply})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(port=5001, debug=True)
+

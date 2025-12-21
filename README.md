@@ -50,7 +50,7 @@ npm install
 npm start
 ```
 
-> Make sure the backend runs on port `5000` and frontend on `3000` for CORS to work smoothly.
+> Make sure the backend runs on port `5001` and frontend on `3000` for CORS to work smoothly.
 
 ---
 
