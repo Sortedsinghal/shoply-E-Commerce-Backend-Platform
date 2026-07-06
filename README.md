@@ -1,4 +1,4 @@
-# 🛒 Shoply –  E-Commerce Chatbot
+# 🛒 Shoply –  E-Commerce Backend Platform
 
 **Shoply** is a full-stack AI chatbot that helps users search and explore e-commerce products in natural language. Built using **ReactJS**, **Flask**, and **SQLite**, it offers seamless chat-based browsing with category filtering, smart matching, and conversation tracking.
 
